@@ -1,5 +1,5 @@
 #define AppName "DisplayBridge"
-#define AppVersion "1.0.1"
+#define AppVersion "2.0.0"
 #define AppPublisher "Conrado Dembiski"
 #define AppExeName "DisplayBridge.exe"
 
@@ -11,7 +11,7 @@ AppVerName={#AppName}
 AppPublisher={#AppPublisher}
 DefaultDirName={autopf}\{#AppName}
 DefaultGroupName={#AppName}
-OutputBaseFilename=DisplayBridge_Setup_v1.0.1
+OutputBaseFilename=DisplayBridge_Setup_v2.0.0
 OutputDir=instalador
 SetupIconFile=displaybridge.ico
 Compression=lzma2/ultra64

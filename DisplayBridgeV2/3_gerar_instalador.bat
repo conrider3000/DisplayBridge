@@ -33,7 +33,7 @@ IF NOT EXIST "instalador" mkdir instalador
 IF %ERRORLEVEL% EQU 0 (
     echo.
     echo  ================================================
-    echo    Sucesso! Instalador: instalador\DisplayBridge_Setup_v1.0.1.exe
+    echo    Sucesso! Instalador: instalador\DisplayBridge_Setup_v2.0.0.exe
     echo  ================================================
 ) ELSE (
     echo  [ERRO] Falha ao gerar instalador!

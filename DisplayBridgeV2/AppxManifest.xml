@@ -8,7 +8,7 @@
   <Identity
     Name="ConradoDembiski.DisplayBridge"
     Publisher="CN=5FF027CE-2494-43DC-A7B1-D3655E331531"
-    Version="1.0.1.0"
+    Version="2.0.0.0"
     ProcessorArchitecture="x64"/>
 
   <Properties>

@@ -40,12 +40,12 @@ xcopy "dist\DisplayBridge\*" "msix_package\" /E /I /Q
 copy "AppxManifest.xml" "msix_package\" >nul
 copy "Assets\*" "msix_package\Assets\" >nul
 IF NOT EXIST "msix" mkdir msix
-"%MAKEAPPX%" pack /d msix_package /p msix\DisplayBridge_1.0.1.0.msix /nv
+"%MAKEAPPX%" pack /d msix_package /p msix\DisplayBridge_2.0.0.0.msix /nv
 
 IF %ERRORLEVEL% EQU 0 (
     echo.
     echo  ================================================
-    echo    Sucesso! msix\DisplayBridge_1.0.1.0.msix
+    echo    Sucesso! msix\DisplayBridge_2.0.0.0.msix
     echo  ================================================
 ) ELSE (
     echo  [ERRO] Falha ao gerar MSIX!

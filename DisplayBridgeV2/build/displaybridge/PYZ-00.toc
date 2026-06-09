@@ -1,4 +1,4 @@
-('C:\\Users\\falac\\Documents\\DisplayBridge\\displaybridge2\\build\\displaybridge\\PYZ-00.pyz',
+('C:\\Users\\falac\\Documents\\DisplayBridge\\DisplayBridgeV2\\build\\displaybridge\\PYZ-00.pyz',
  [('PIL',
    'C:\\Users\\falac\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\PIL\\__init__.py',
    'PYMODULE'),
