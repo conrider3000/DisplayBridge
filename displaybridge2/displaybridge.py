@@ -15,6 +15,10 @@ import queue
 import threading
 import ctypes
 import ctypes.wintypes as wt
+import os
+import time
+import json
+import winreg
 
 # ── Dependências visuais ──────────────────────────────
 try:
@@ -32,6 +36,198 @@ except ImportError as e:
         f"Dependência faltando:\n{e}\n\nRode '1_instalar_dependencias.bat' primeiro."
     )
     sys.exit(1)
+
+
+# ── Configurações e Registro ──────────────────────────
+_settings_dir = os.path.join(os.environ.get("APPDATA", ""), "DisplayBridge")
+_settings_file = os.path.join(_settings_dir, "settings.json")
+
+def load_settings():
+    default_settings = {
+        "start_with_windows": True,
+        "enable_notifications": True
+    }
+    if not os.path.exists(_settings_dir):
+        try:
+            os.makedirs(_settings_dir, exist_ok=True)
+        except Exception:
+            pass
+    if os.path.exists(_settings_file):
+        try:
+            with open(_settings_file, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                # Garante chaves padrão
+                for k, v in default_settings.items():
+                    if k not in data:
+                        data[k] = v
+                return data
+        except Exception:
+            pass
+    return default_settings
+
+def save_settings(settings):
+    if not os.path.exists(_settings_dir):
+        try:
+            os.makedirs(_settings_dir, exist_ok=True)
+        except Exception:
+            pass
+    try:
+        with open(_settings_file, "w", encoding="utf-8") as f:
+            json.dump(settings, f, indent=4, ensure_ascii=False)
+    except Exception:
+        pass
+
+def toggle_startup_registry(enable):
+    try:
+        key = winreg.OpenKey(
+            winreg.HKEY_CURRENT_USER,
+            r"Software\Microsoft\Windows\CurrentVersion\Run",
+            0,
+            winreg.KEY_SET_VALUE
+        )
+        if enable:
+            exe_path = os.path.abspath(sys.argv[0])
+            if exe_path.endswith(".py"):
+                cmd = f'"{sys.executable}" "{exe_path}"'
+            else:
+                cmd = f'"{exe_path}"'
+            winreg.SetValueEx(key, "DisplayBridge", 0, winreg.REG_SZ, cmd)
+        else:
+            try:
+                winreg.DeleteValue(key, "DisplayBridge")
+            except FileNotFoundError:
+                pass
+        winreg.CloseKey(key)
+    except Exception as e:
+        log_debug(f"Erro ao alterar registro do startup: {e}")
+
+def show_settings_ui():
+    import tkinter as tk
+    
+    settings = load_settings()
+    
+    root = tk.Tk()
+    root.title("DisplayBridge - Configurações")
+    root.configure(bg="#1c1c1e")
+    
+    width = 340
+    height = 240
+    
+    try:
+        screen_width = root.winfo_screenwidth()
+        screen_height = root.winfo_screenheight()
+        x = (screen_width - width) // 2
+        y = (screen_height - height) // 2
+        root.geometry(f"{width}x{height}+{x}+{y}")
+    except Exception:
+        root.geometry(f"{width}x{height}")
+        
+    root.resizable(False, False)
+    
+    system_font_bold = ("Segoe UI", 12, "bold")
+    system_font_normal = ("Segoe UI", 10)
+    system_font_caption = ("Segoe UI", 8)
+    
+    class MacOSToggle(tk.Canvas):
+        def __init__(self, parent, initial_state=False, command=None):
+            super().__init__(parent, width=44, height=24, bg="#2c2c2e", highlightthickness=0)
+            self.command = command
+            self.state = initial_state
+            self.bind("<Button-1>", self.toggle)
+            self.draw()
+
+        def draw(self):
+            self.delete("all")
+            color = "#34c759" if self.state else "#3a3a3c"
+            
+            self.create_arc(0, 0, 24, 24, start=90, extent=180, fill=color, outline="")
+            self.create_arc(20, 0, 44, 24, start=270, extent=180, fill=color, outline="")
+            self.create_rectangle(12, 0, 32, 24, fill=color, outline="")
+            
+            knob_x = 32 if self.state else 12
+            self.create_oval(knob_x-10, 2, knob_x+10, 22, fill="#ffffff", outline="")
+
+        def toggle(self, event):
+            self.state = not self.state
+            self.draw()
+            if self.command:
+                self.command(self.state)
+                
+    header_frame = tk.Frame(root, bg="#1c1c1e")
+    header_frame.pack(pady=(20, 15), fill="x", padx=20)
+    
+    icon_canvas = tk.Canvas(header_frame, width=32, height=32, bg="#1c1c1e", highlightthickness=0)
+    icon_canvas.pack(side="left", padx=(0, 10))
+    icon_canvas.create_oval(2, 2, 30, 30, fill="#0a84ff", outline="")
+    icon_canvas.create_rectangle(8, 8, 24, 18, outline="#ffffff", width=2)
+    icon_canvas.create_line(16, 18, 16, 22, fill="#ffffff", width=2)
+    icon_canvas.create_line(12, 22, 20, 22, fill="#ffffff", width=2)
+    
+    title_frame = tk.Frame(header_frame, bg="#1c1c1e")
+    title_frame.pack(side="left")
+    
+    lbl_title = tk.Label(title_frame, text="DisplayBridge", fg="#ffffff", bg="#1c1c1e", font=system_font_bold)
+    lbl_title.pack(anchor="w")
+    
+    lbl_ver = tk.Label(title_frame, text="Configurações do Sistema", fg="#8e8e93", bg="#1c1c1e", font=system_font_normal)
+    lbl_ver.pack(anchor="w")
+    
+    group_frame = tk.Frame(root, bg="#2c2c2e", bd=0)
+    group_frame.pack(fill="x", padx=20, pady=5)
+    
+    def make_row(parent, title, caption, val, cmd, is_last=False):
+        row = tk.Frame(parent, bg="#2c2c2e", height=50)
+        row.pack(fill="x", padx=15, pady=8)
+        
+        txt_frame = tk.Frame(row, bg="#2c2c2e")
+        txt_frame.pack(side="left", fill="both", expand=True)
+        
+        lbl_t = tk.Label(txt_frame, text=title, fg="#ffffff", bg="#2c2c2e", font=system_font_normal, anchor="w")
+        lbl_t.pack(fill="x", anchor="w")
+        
+        lbl_c = tk.Label(txt_frame, text=caption, fg="#8e8e93", bg="#2c2c2e", font=system_font_caption, anchor="w")
+        lbl_c.pack(fill="x", anchor="w")
+        
+        toggle = MacOSToggle(row, initial_state=val, command=cmd)
+        toggle.pack(side="right", padx=(5, 0))
+        
+        if not is_last:
+            sep = tk.Frame(parent, bg="#3a3a3c", height=1)
+            sep.pack(fill="x", padx=15)
+            
+    def on_toggle_startup(state):
+        settings["start_with_windows"] = state
+        save_settings(settings)
+        toggle_startup_registry(state)
+        
+    def on_toggle_notif(state):
+        settings["enable_notifications"] = state
+        save_settings(settings)
+        
+    make_row(group_frame, "Iniciar com o Computador", "Executar DisplayBridge ao ligar o PC", settings["start_with_windows"], on_toggle_startup)
+    make_row(group_frame, "Exibir Notificações", "Mostrar aviso ao mover janelas", settings["enable_notifications"], on_toggle_notif, is_last=True)
+    
+    footer_frame = tk.Frame(root, bg="#1c1c1e")
+    footer_frame.pack(fill="x", padx=20, pady=(15, 0))
+    
+    btn_close = tk.Button(
+        footer_frame, 
+        text="Fechar", 
+        command=root.destroy, 
+        bg="#0a84ff", 
+        fg="#ffffff", 
+        activebackground="#007aff", 
+        activeforeground="#ffffff", 
+        bd=0, 
+        font=system_font_normal,
+        padx=20,
+        pady=5,
+        cursor="hand2"
+    )
+    btn_close.pack(side="right")
+    
+    root.mainloop()
+
 
 
 # ════════════════════════════════════════════════════════
@@ -88,8 +284,6 @@ _hook_tid     = None   # thread ID da thread do hook (para PostThreadMessage)
 _tab_is_held  = False  # Máquina de estados: rastreia se o Tab está sendo segurado
 
 
-import os
-import time
 
 _log_file_path = "C:\\Users\\falac\\Documents\\DisplayBridge\\displaybridge_debug.txt"
 
@@ -194,11 +388,11 @@ def _display_change_wnd_proc(hwnd, msg, wParam, lParam):
         if num >= 2 and not _keyboard_thread_active:
             start_hook()
             _update_tray_icon()
-            _notify("✅ Segundo monitor detectado — DisplayBridge ativo")
+            _notify("✅ Segundo monitor detectado — DisplayBridge ativo", force=True)
         elif num < 2 and _keyboard_thread_active:
             stop_hook()
             _update_tray_icon()
-            _notify("⏸ Monitor desconectado — DisplayBridge pausado")
+            _notify("⏸ Monitor desconectado — DisplayBridge pausado", force=True)
     elif msg == WM_DESTROY:
         ctypes.windll.user32.PostQuitMessage(0)
     # Define os tipos de DefWindowProcW para evitar problemas de casting em 64-bit
@@ -350,14 +544,38 @@ def move_window_to_next_monitor():
 # ════════════════════════════════════════════════════════
 
 _tray = None
+_last_notify_time = 0.0
+_notify_cooldown = 3.0
 
-
-def _notify(msg):
+def _notify(msg, force=False):
+    global _last_notify_time
     if _tray:
+        settings = load_settings()
+        if not settings.get("enable_notifications", True):
+            log_debug("notify: ignorado (notificações desativas nas configurações)")
+            return
+
+        now = time.time()
+        if not force and (now - _last_notify_time < _notify_cooldown):
+            log_debug(f"notify: ignorado (cooldown): {msg}")
+            return
+        
+        if not force:
+            _last_notify_time = now
+
         try:
-            _tray.notify(msg, "DisplayBridge")
-        except Exception:
-            pass
+            import pystray._util.win32 as pystray_win32
+            uFlags = 0x00000010 | 0x00000040  # NIF_INFO | NIF_REALTIME
+            dwInfoFlags = 0x00000001 | 0x00000010  # NIIF_INFO | NIIF_NOSOUND
+            _tray._message(
+                pystray_win32.NIM_MODIFY,
+                uFlags,
+                szInfo=msg,
+                szInfoTitle="DisplayBridge",
+                dwInfoFlags=dwInfoFlags
+            )
+        except Exception as e:
+            log_debug(f"notify ERRO: {e}")
 
 
 def _make_icon(active=True):
@@ -400,10 +618,21 @@ def _on_quit(icon, item):
 def _on_about(icon, item):
     num = get_monitor_count()
     if num >= 2:
-        _notify(f"✅ Ativo  |  {num} monitores  |  Tab+Alt → próxima tela")
+        _notify(f"✅ Ativo  |  {num} monitores  |  Tab+Alt → próxima tela", force=True)
     else:
-        _notify(f"⏸ Pausado  |  Apenas {num} monitor conectado")
+        _notify(f"⏸ Pausado  |  Apenas {num} monitor conectado", force=True)
 
+
+def _on_settings(icon, item):
+    try:
+        import subprocess
+        exe_path = os.path.abspath(sys.argv[0])
+        if exe_path.endswith(".py"):
+            subprocess.Popen([sys.executable, exe_path, "--settings"])
+        else:
+            subprocess.Popen([exe_path, "--settings"])
+    except Exception as e:
+        log_debug(f"Erro ao abrir configuracoes: {e}")
 
 def run_tray():
     global _tray
@@ -416,6 +645,7 @@ def run_tray():
                  "DisplayBridge  |  Aguardando 2º monitor... ⏸"),
         menu  = pystray.Menu(
             pystray.MenuItem("ℹ️  Status", _on_about),
+            pystray.MenuItem("⚙️  Configurações", _on_settings),
             pystray.Menu.SEPARATOR,
             pystray.MenuItem("❌  Sair", _on_quit),
         ),
@@ -428,7 +658,12 @@ def run_tray():
 # ════════════════════════════════════════════════════════
 
 if __name__ == "__main__":
-    # Evita múltiplas instâncias
+    import sys
+    if "--settings" in sys.argv:
+        show_settings_ui()
+        sys.exit(0)
+
+    # Evita múltiplas instâncias do daemon
     mutex = ctypes.windll.kernel32.CreateMutexW(None, False, "DisplayBridge_v2_Mutex")
     if ctypes.windll.kernel32.GetLastError() == 183:
         sys.exit(0)
