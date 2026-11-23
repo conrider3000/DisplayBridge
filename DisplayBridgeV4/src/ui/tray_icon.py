@@ -5,6 +5,7 @@ import pystray
 from PIL import Image, ImageDraw
 from utils.logger import log_debug
 from utils.config import load_settings
+from utils.resources import resource_path
 
 _tray = None
 _last_notify_time = 0.0
@@ -41,16 +42,20 @@ def _notify(msg, force=False):
             log_debug(f"notify ERRO: {e}")
 
 def _make_icon(active=True):
-    sz  = 64
+    icon_name = "tray_active.png" if active else "tray_paused.png"
+    icon_file = resource_path(os.path.join("assets", icon_name))
+    try:
+        with Image.open(icon_file) as im:
+            return im.convert("RGBA").copy()
+    except Exception as e:
+        log_debug(f"Aviso: falha ao carregar ícone da bandeja ({icon_file}): {e}")
+
+    sz = 64
     img = Image.new("RGBA", (sz, sz), (0, 0, 0, 0))
-    d   = ImageDraw.Draw(img)
-    color = (139, 195, 74, 255) if active else (150, 150, 150, 255)
-    
-    # Left monitor
+    d = ImageDraw.Draw(img)
+    color = (30, 142, 62, 255) if active else (150, 150, 150, 255)
     d.rounded_rectangle([4, 16, 26, 48], radius=2, fill=color)
-    # Right monitor
     d.rounded_rectangle([38, 16, 60, 48], radius=2, fill=color)
-    # Center circle
     d.ellipse([24, 24, 40, 40], outline=color, width=3)
     return img
 

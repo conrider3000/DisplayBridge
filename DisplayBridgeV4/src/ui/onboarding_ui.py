@@ -1,8 +1,10 @@
+import os
 import tkinter as tk
 from utils.config import load_settings, save_settings
+from utils.resources import resource_path
 
 class RoundedButton(tk.Canvas):
-    def __init__(self, parent, text, command, width=150, height=40, bg="#8BC34A", fg="white", font=("Segoe UI", 11, "bold"), radius=20):
+    def __init__(self, parent, text, command, width=150, height=40, bg="#1e8e3e", fg="white", font=("Segoe UI", 11, "bold"), radius=20):
         super().__init__(parent, width=width, height=height, bg="#1c1c1e", highlightthickness=0)
         self.command = command
         self.text = text
@@ -34,7 +36,7 @@ class RoundedButton(tk.Canvas):
         self.text_id = self.create_text(w/2, h/2, text=self.text, fill=self.fg_color, font=self.font)
 
     def on_press(self, event):
-        self.draw("#689F38")
+        self.draw("#156b2e")
         
     def on_release(self, event):
         self.draw()
@@ -42,7 +44,7 @@ class RoundedButton(tk.Canvas):
             self.command()
             
     def on_enter(self, event):
-        self.draw("#9CCC65")
+        self.draw("#25a64a")
         
     def on_leave(self, event):
         self.draw()
@@ -51,6 +53,10 @@ def show_onboarding():
     root = tk.Tk()
     root.title("Bem-vindo ao DisplayBridge")
     root.configure(bg="#1c1c1e")
+    try:
+        root.iconbitmap(resource_path(os.path.join("assets", "icon.ico")))
+    except Exception:
+        pass
     
     width, height = 450, 500
     try:
@@ -63,15 +69,17 @@ def show_onboarding():
         root.geometry(f"{width}x{height}")
         
     root.resizable(False, False)
+    root.lift()
+    root.attributes("-topmost", True)
+    root.focus_force()
+    root.after(800, lambda: root.attributes("-topmost", False))
     
-    # Ícone vetorial desenhado
-    canvas = tk.Canvas(root, width=120, height=80, bg="#1c1c1e", highlightthickness=0)
-    canvas.pack(pady=(40, 20))
-    # Monitores e círculo verde abacate
-    canvas.create_rectangle(10, 10, 40, 60, fill="#8BC34A", outline="", width=2)
-    canvas.create_rectangle(80, 10, 110, 60, fill="#8BC34A", outline="", width=2)
-    canvas.create_oval(40, 15, 80, 55, outline="#8BC34A", width=4)
-    canvas.create_polygon(75, 30, 85, 35, 75, 40, fill="#8BC34A") # Seta no círculo
+    # Logo oficial do DisplayBridge
+    try:
+        root._logo_img = tk.PhotoImage(file=resource_path(os.path.join("assets", "logo_80.png")))
+        tk.Label(root, image=root._logo_img, bg="#1c1c1e", bd=0).pack(pady=(35, 18))
+    except Exception:
+        pass
     
     # Textos
     tk.Label(root, text="Bem-vindo ao DisplayBridge", font=("Segoe UI", 18, "bold"), fg="white", bg="#1c1c1e").pack(pady=(0, 10))

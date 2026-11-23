@@ -1,5 +1,7 @@
+import os
 import tkinter as tk
 from utils.config import load_settings, save_settings, toggle_startup_registry
+from utils.resources import resource_path
 
 def show_settings_ui():
     settings = load_settings()
@@ -7,6 +9,10 @@ def show_settings_ui():
     root = tk.Tk()
     root.title("DisplayBridge - Configurações")
     root.configure(bg="#1c1c1e")
+    try:
+        root.iconbitmap(resource_path(os.path.join("assets", "icon.ico")))
+    except Exception:
+        pass
     
     width = 340
     height = 240
@@ -22,6 +28,10 @@ def show_settings_ui():
     # Janela maior para evitar corte no botão Fechar em telas com escala > 100%
     root.geometry("400x320")
     root.resizable(False, False)
+    root.lift()
+    root.attributes("-topmost", True)
+    root.focus_force()
+    root.after(400, lambda: root.attributes("-topmost", False))
     
     system_font_bold = ("Segoe UI", 12, "bold")
     system_font_normal = ("Segoe UI", 10)
@@ -55,11 +65,12 @@ def show_settings_ui():
     header_frame = tk.Frame(root, bg="#1c1c1e")
     header_frame.pack(pady=(20, 15), fill="x", padx=20)
     
-    icon_canvas = tk.Canvas(header_frame, width=32, height=32, bg="#1c1c1e", highlightthickness=0)
-    icon_canvas.pack(side="left", padx=(0, 10))
-    icon_canvas.create_rectangle(4, 10, 14, 22, fill="#8BC34A", outline="")
-    icon_canvas.create_rectangle(18, 10, 28, 22, fill="#8BC34A", outline="")
-    icon_canvas.create_oval(12, 12, 20, 20, outline="#8BC34A", width=2)
+    try:
+        root._logo_img = tk.PhotoImage(file=resource_path(os.path.join("assets", "logo_36.png")))
+        lbl_icon = tk.Label(header_frame, image=root._logo_img, bg="#1c1c1e", bd=0)
+        lbl_icon.pack(side="left", padx=(0, 12))
+    except Exception:
+        pass
     
     title_frame = tk.Frame(header_frame, bg="#1c1c1e")
     title_frame.pack(side="left")
@@ -112,9 +123,9 @@ def show_settings_ui():
         footer_frame, 
         text="Fechar", 
         command=root.destroy, 
-        bg="#8BC34A", 
+        bg="#1e8e3e", 
         fg="#ffffff", 
-        activebackground="#689F38", 
+        activebackground="#156b2e", 
         activeforeground="#ffffff", 
         bd=0, 
         font=system_font_normal,

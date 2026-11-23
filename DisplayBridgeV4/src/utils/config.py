@@ -42,21 +42,56 @@ def save_settings(settings):
     except Exception:
         pass
 
+_RUN_KEY = r"Software\Microsoft\Windows\CurrentVersion\Run"
+_APPROVED_KEY = r"Software\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run"
+
+
+def _startup_command():
+    """Comando que o Windows deve executar no logon."""
+    if getattr(sys, "frozen", False):
+        # Executável PyInstaller: sys.executable é o caminho real do .exe
+        return f'"{os.path.abspath(sys.executable)}"'
+    # Execução via Python: usa pythonw para não abrir console
+    main_py = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "__main__.py"))
+    pyw = os.path.join(os.path.dirname(sys.executable), "pythonw.exe")
+    interpreter = pyw if os.path.exists(pyw) else sys.executable
+    return f'"{interpreter}" "{main_py}"'
+
+
+def _mark_startup_approved():
+    """Reativa a entrada caso tenha sido desativada no Gerenciador de Tarefas."""
+    try:
+        key = winreg.CreateKeyEx(winreg.HKEY_CURRENT_USER, _APPROVED_KEY, 0, winreg.KEY_SET_VALUE)
+        winreg.SetValueEx(key, "DisplayBridge", 0, winreg.REG_BINARY, bytes([2] + [0] * 11))
+        winreg.CloseKey(key)
+    except Exception as e:
+        log_debug(f"Erro ao marcar StartupApproved: {e}")
+
+
+def ensure_startup_registry(settings):
+    """Chamado a cada inicialização: mantém o registro coerente com a configuração.
+
+    Corrige caminhos antigos (ex.: executável movido/reinstalado) e reativa a
+    entrada se o usuário quer iniciar com o Windows.
+    """
+    if not getattr(sys, "frozen", False):
+        return  # Em desenvolvimento não mexe no registro automaticamente
+    toggle_startup_registry(bool(settings.get("start_with_windows", True)))
+
+
 def toggle_startup_registry(enable):
     try:
-        key = winreg.OpenKey(
+        key = winreg.CreateKeyEx(
             winreg.HKEY_CURRENT_USER,
-            r"Software\Microsoft\Windows\CurrentVersion\Run",
+            _RUN_KEY,
             0,
             winreg.KEY_SET_VALUE
         )
         if enable:
-            exe_path = os.path.abspath(sys.argv[0])
-            if exe_path.endswith(".py"):
-                cmd = f'"{sys.executable}" "{exe_path}"'
-            else:
-                cmd = f'"{exe_path}"'
+            cmd = _startup_command()
             winreg.SetValueEx(key, "DisplayBridge", 0, winreg.REG_SZ, cmd)
+            log_debug(f"Startup registrado: {cmd}")
+            _mark_startup_approved()
         else:
             try:
                 winreg.DeleteValue(key, "DisplayBridge")
