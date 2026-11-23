@@ -4,21 +4,44 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>DisplayBridge — Mova janelas entre monitores com Tab + Alt</title>
-  <meta name="description" content="Utilitário leve para Windows que move a janela ativa entre múltiplos monitores instantaneamente usando Tab + Alt." />
+  <meta name="description" content="Utilitário gratuito e open-source para Windows 10 e 11 que move a janela ativa entre múltiplos monitores instantaneamente com Tab + Alt." />
+  <meta name="theme-color" content="#0a0c0d" />
+
+  <!-- Open Graph / Social Sharing -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://displaybridge.vercel.app/" />
+  <meta property="og:title" content="DisplayBridge v4.0 — Mova janelas entre monitores com Tab + Alt" />
+  <meta property="og:description" content="Alterne qualquer janela entre seus monitores no Windows com um toque em Tab + Alt. Leve, gratuito, open-source e com circularidade automática." />
+  <meta property="og:image" content="https://displaybridge.vercel.app/DisplayBridgeV4/assets/icon_store.png" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="DisplayBridge v4.0 — Mova janelas entre monitores com Tab + Alt" />
+  <meta name="twitter:description" content="Utilitário gratuito para Windows que move a janela ativa entre múltiplos monitores instantaneamente." />
+  <meta name="twitter:image" content="https://displaybridge.vercel.app/DisplayBridgeV4/assets/icon_store.png" />
+
   <link rel="icon" type="image/x-icon" href="./DisplayBridgeV4/assets/icon.ico" />
   <link rel="icon" type="image/png" sizes="48x48" href="./DisplayBridgeV4/assets/logo_48.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
   <style>
     :root {
-      --bg: #111214;
-      --surface: #1b1d20;
-      --surface-2: #23262b;
+      --bg: #090b0c;
+      --bg-elevated: #111517;
+      --surface: #151a1d;
+      --surface-hover: #1b2226;
       --border: rgba(255, 255, 255, 0.08);
-      --text: #f3f4f6;
-      --muted: #9ca3af;
-      --green: #1e8e3e;
+      --border-strong: rgba(255, 255, 255, 0.15);
+      --text: #f4f7f5;
+      --text-secondary: #9aa7a0;
+      --text-muted: #6c7972;
+      --green: #16a34a;
       --green-bright: #22c55e;
-      --green-hover: #25a64a;
-      --green-glow: rgba(34, 197, 94, 0.16);
+      --green-soft: rgba(34, 197, 94, 0.12);
+      --green-border: rgba(34, 197, 94, 0.32);
+      --radius-lg: 20px;
+      --radius-md: 14px;
+      --radius-sm: 10px;
     }
 
     * {
@@ -27,16 +50,20 @@
       padding: 0;
     }
 
+    html {
+      scroll-behavior: smooth;
+    }
+
     body {
-      font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
-      background:
-        radial-gradient(900px 420px at 50% -80px, rgba(30, 142, 62, 0.22), transparent 70%),
-        var(--bg);
+      font-family: "Plus Jakarta Sans", "Segoe UI", -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--bg);
+      background-image:
+        radial-gradient(1000px 520px at 50% -120px, rgba(22, 163, 74, 0.22), transparent 68%),
+        radial-gradient(600px 420px at 85% 22%, rgba(34, 197, 94, 0.07), transparent 65%);
       color: var(--text);
       line-height: 1.6;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
     }
 
     a {
@@ -44,32 +71,44 @@
       text-decoration: none;
     }
 
+    button {
+      font-family: inherit;
+      cursor: pointer;
+    }
+
     .container {
       width: 100%;
-      max-width: 980px;
+      max-width: 1080px;
       margin: 0 auto;
       padding: 0 24px;
     }
 
+    /* Header */
     header {
-      padding: 22px 0;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      background: rgba(9, 11, 12, 0.78);
       border-bottom: 1px solid var(--border);
     }
 
     .nav {
+      height: 68px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 16px;
+      gap: 20px;
     }
 
     .brand {
       display: inline-flex;
       align-items: center;
-      gap: 12px;
-      font-weight: 700;
-      font-size: 1.1rem;
-      letter-spacing: -0.01em;
+      gap: 11px;
+      font-weight: 800;
+      font-size: 1.08rem;
+      letter-spacing: -0.02em;
     }
 
     .brand img {
@@ -78,255 +117,915 @@
       object-fit: contain;
     }
 
-    .nav-links {
+    .nav-center {
       display: flex;
       align-items: center;
-      gap: 18px;
+      gap: 26px;
       font-size: 0.92rem;
-      color: var(--muted);
+      font-weight: 500;
+      color: var(--text-secondary);
     }
 
-    .nav-links a:hover {
+    .nav-center a {
+      transition: color 0.16s ease;
+    }
+
+    .nav-center a:hover {
       color: var(--text);
     }
 
-    main {
-      flex: 1;
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
 
+    .btn-ghost {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 14px;
+      border-radius: var(--radius-sm);
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      border: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.02);
+      transition: all 0.16s ease;
+    }
+
+    .btn-ghost:hover {
+      color: var(--text);
+      border-color: var(--border-strong);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .btn-nav-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 16px;
+      border-radius: var(--radius-sm);
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: #ffffff;
+      background: var(--green);
+      transition: background 0.16s ease, transform 0.14s ease;
+    }
+
+    .btn-nav-cta:hover {
+      background: #1ea850;
+      transform: translateY(-1px);
+    }
+
+    /* Hero */
     .hero {
-      padding: 68px 0 48px;
+      padding: 74px 0 48px;
       text-align: center;
     }
 
-    .hero-logo {
-      width: 104px;
-      height: 104px;
-      object-fit: contain;
-      margin-bottom: 22px;
-      filter: drop-shadow(0 12px 28px rgba(30, 142, 62, 0.35));
-    }
-
-    .badge {
+    .hero-badge {
       display: inline-flex;
       align-items: center;
       gap: 8px;
       padding: 6px 14px;
       border-radius: 999px;
-      background: var(--green-glow);
-      border: 1px solid rgba(34, 197, 94, 0.3);
+      background: var(--green-soft);
+      border: 1px solid var(--green-border);
       color: #86efac;
-      font-size: 0.84rem;
-      font-weight: 600;
+      font-size: 0.82rem;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+      margin-bottom: 24px;
+    }
+
+    .hero-badge .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--green-bright);
+      box-shadow: 0 0 10px var(--green-bright);
+    }
+
+    .hero-logo-wrap {
+      display: flex;
+      justify-content: center;
       margin-bottom: 18px;
     }
 
-    h1 {
-      font-size: clamp(2.1rem, 4.5vw, 3.2rem);
-      font-weight: 800;
-      letter-spacing: -0.03em;
-      line-height: 1.12;
-      margin-bottom: 16px;
+    .hero-logo {
+      width: 96px;
+      height: 96px;
+      object-fit: contain;
+      filter: drop-shadow(0 14px 32px rgba(22, 163, 74, 0.38));
     }
 
-    .hero p {
-      max-width: 600px;
-      margin: 0 auto 30px;
-      color: var(--muted);
-      font-size: 1.1rem;
+    h1 {
+      font-size: clamp(2.25rem, 5vw, 3.6rem);
+      font-weight: 800;
+      line-height: 1.08;
+      letter-spacing: -0.035em;
+      max-width: 780px;
+      margin: 0 auto 20px;
+    }
+
+    h1 .accent {
+      background: linear-gradient(135deg, #4ade80 0%, #16a34a 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-subtitle {
+      max-width: 620px;
+      margin: 0 auto 32px;
+      color: var(--text-secondary);
+      font-size: 1.12rem;
+      font-weight: 400;
     }
 
     kbd {
-      display: inline-block;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
       padding: 2px 9px;
-      font-family: "Segoe UI", monospace;
-      font-size: 0.92em;
+      font-family: "JetBrains Mono", "Segoe UI", monospace;
+      font-size: 0.86em;
       font-weight: 700;
       color: #ffffff;
-      background: var(--surface-2);
-      border: 1px solid rgba(255, 255, 255, 0.18);
-      border-bottom-width: 2px;
-      border-radius: 6px;
+      background: #1f262a;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-bottom-width: 3px;
+      border-radius: 7px;
+      transition: transform 0.1s ease, border-color 0.15s ease, background 0.15s ease;
     }
 
-    .cta-group {
+    kbd.pressed {
+      transform: translateY(2px);
+      border-bottom-width: 1px;
+      border-color: var(--green-bright);
+      background: rgba(22, 163, 74, 0.32);
+    }
+
+    .hero-cta {
       display: flex;
       flex-wrap: wrap;
       justify-content: center;
       gap: 12px;
-      margin-bottom: 14px;
+      margin-bottom: 20px;
     }
 
     .btn-primary {
       display: inline-flex;
       align-items: center;
+      justify-content: center;
       gap: 10px;
-      padding: 14px 26px;
-      border-radius: 12px;
-      background: var(--green);
+      padding: 15px 28px;
+      border-radius: 13px;
+      background: linear-gradient(180deg, #1ea850 0%, #15803d 100%);
       color: #ffffff;
       font-weight: 700;
       font-size: 1rem;
-      transition: background 0.18s ease, transform 0.15s ease, box-shadow 0.18s ease;
-      box-shadow: 0 10px 26px rgba(30, 142, 62, 0.35);
+      border: 1px solid rgba(74, 222, 128, 0.35);
+      box-shadow: 0 12px 32px rgba(22, 163, 74, 0.32);
+      transition: transform 0.15s ease, box-shadow 0.18s ease, filter 0.18s ease;
     }
 
     .btn-primary:hover {
-      background: var(--green-hover);
-      transform: translateY(-1px);
+      transform: translateY(-2px);
+      filter: brightness(1.06);
+      box-shadow: 0 16px 38px rgba(22, 163, 74, 0.42);
     }
 
     .btn-secondary {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
-      padding: 14px 22px;
-      border-radius: 12px;
+      justify-content: center;
+      gap: 9px;
+      padding: 15px 24px;
+      border-radius: 13px;
       background: var(--surface);
-      border: 1px solid var(--border);
+      border: 1px solid var(--border-strong);
       color: var(--text);
       font-weight: 600;
       font-size: 0.98rem;
-      transition: background 0.18s ease, border-color 0.18s ease;
+      transition: background 0.16s ease, border-color 0.16s ease, transform 0.14s ease;
     }
 
     .btn-secondary:hover {
-      background: var(--surface-2);
-      border-color: rgba(255, 255, 255, 0.18);
+      background: var(--surface-hover);
+      border-color: rgba(255, 255, 255, 0.25);
+      transform: translateY(-1px);
     }
 
-    .meta-note {
-      font-size: 0.85rem;
-      color: var(--muted);
-    }
-
-    .demo-box {
-      margin: 42px auto 12px;
-      max-width: 680px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 24px;
-    }
-
-    .monitors {
-      display: grid;
-      grid-template-columns: 1fr auto 1fr;
-      align-items: center;
-      gap: 16px;
-    }
-
-    .monitor {
-      background: #131518;
-      border: 2px solid #2e3238;
-      border-radius: 12px;
-      padding: 18px 14px;
-      position: relative;
-      min-height: 112px;
+    .trust-strip {
       display: flex;
-      flex-direction: column;
-      justify-content: space-between;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px 22px;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 48px;
     }
 
-    .monitor-label {
-      font-size: 0.78rem;
-      color: var(--muted);
+    .trust-strip span {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .trust-strip svg {
+      color: var(--green-bright);
+    }
+
+    /* Interactive Demo Playground */
+    .playground {
+      max-width: 880px;
+      margin: 0 auto;
+      background: linear-gradient(180deg, rgba(21, 26, 29, 0.92) 0%, rgba(15, 19, 21, 0.96) 100%);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-lg);
+      padding: 22px;
+      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55);
       text-align: left;
     }
 
-    .window-pill {
-      margin-top: 10px;
-      padding: 12px 14px;
-      border-radius: 8px;
-      font-size: 0.88rem;
-      font-weight: 600;
-      text-align: center;
+    .playground-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding-bottom: 18px;
+      margin-bottom: 20px;
+      border-bottom: 1px solid var(--border);
     }
 
-    .window-pill.active {
-      background: rgba(34, 197, 94, 0.16);
-      border: 1px solid rgba(34, 197, 94, 0.5);
+    .playground-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .playground-title .live-pill {
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      background: var(--green-soft);
+      color: #86efac;
+      border: 1px solid var(--green-border);
+    }
+
+    .playground-controls {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .seg-btn {
+      padding: 6px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--text-secondary);
+      font-size: 0.82rem;
+      font-weight: 600;
+      transition: all 0.15s ease;
+    }
+
+    .seg-btn:hover {
+      color: var(--text);
+      border-color: var(--border-strong);
+    }
+
+    .seg-btn.active {
+      background: var(--green-soft);
+      border-color: var(--green-border);
       color: #bbf7d0;
     }
 
-    .window-pill.ghost {
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px dashed rgba(255, 255, 255, 0.12);
-      color: #6b7280;
+    .monitors-stage {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 18px;
+      margin-bottom: 18px;
     }
 
-    .shortcut-bridge {
+    .monitors-stage.three-screens {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    .screen-unit {
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 6px;
-      font-size: 0.85rem;
-      color: #86efac;
+    }
+
+    .screen-bezel {
+      width: 100%;
+      height: 174px;
+      background: linear-gradient(160deg, #0d1215 0%, #090d0f 100%);
+      border: 2px solid #283136;
+      border-radius: 13px;
+      padding: 10px;
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.25s ease, box-shadow 0.25s ease;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .screen-unit.has-window .screen-bezel {
+      border-color: rgba(34, 197, 94, 0.55);
+      box-shadow: 0 0 28px rgba(22, 163, 74, 0.16);
+    }
+
+    .screen-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.72rem;
+      font-family: "JetBrains Mono", monospace;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+      z-index: 2;
+    }
+
+    .screen-canvas {
+      flex: 1;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .app-window {
+      width: 78%;
+      height: 82%;
+      border-radius: 8px;
+      background: linear-gradient(180deg, #1b252a 0%, #131b1f 100%);
+      border: 1px solid rgba(74, 222, 128, 0.5);
+      box-shadow: 0 10px 26px rgba(0, 0, 0, 0.5);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      animation: popIn 0.24s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .app-window.maximized {
+      width: 100%;
+      height: 100%;
+      border-radius: 6px;
+    }
+
+    @keyframes popIn {
+      0% {
+        opacity: 0;
+        transform: scale(0.92) translateX(-14px);
+      }
+      100% {
+        opacity: 1;
+        transform: scale(1) translateX(0);
+      }
+    }
+
+    .win-titlebar {
+      height: 22px;
+      background: rgba(34, 197, 94, 0.14);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 0 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.68rem;
       font-weight: 600;
+      color: #d1fae5;
     }
 
-    .arrow-icon {
-      font-size: 1.4rem;
-      line-height: 1;
+    .win-dots {
+      display: flex;
+      gap: 4px;
     }
 
-    .features {
-      padding: 36px 0 72px;
+    .win-dots i {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.25);
+      display: block;
+    }
+
+    .win-body {
+      flex: 1;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .code-line {
+      height: 6px;
+      border-radius: 3px;
+      background: rgba(255, 255, 255, 0.12);
+    }
+
+    .code-line.green {
+      background: rgba(34, 197, 94, 0.45);
+      width: 55%;
+    }
+
+    .code-line.mid {
+      width: 78%;
+    }
+
+    .code-line.short {
+      width: 42%;
+    }
+
+    .empty-hint {
+      font-size: 0.78rem;
+      color: #414d47;
+      border: 1px dashed rgba(255, 255, 255, 0.09);
+      border-radius: 8px;
+      padding: 10px 14px;
+    }
+
+    .screen-stand {
+      width: 42px;
+      height: 10px;
+      background: #232b2f;
+      border-radius: 0 0 4px 4px;
+    }
+
+    .screen-base {
+      width: 74px;
+      height: 4px;
+      background: #2d373d;
+      border-radius: 999px;
+      margin-top: 2px;
+    }
+
+    .playground-footer {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      padding-top: 14px;
+      border-top: 1px solid var(--border);
+    }
+
+    .trigger-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 18px;
+      border-radius: 10px;
+      border: 1px solid var(--green-border);
+      background: var(--green-soft);
+      color: #dcfce7;
+      font-weight: 700;
+      font-size: 0.9rem;
+      transition: all 0.16s ease;
+    }
+
+    .trigger-btn:hover {
+      background: rgba(34, 197, 94, 0.22);
+      transform: translateY(-1px);
+    }
+
+    .tray-toast {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 14px;
+      border-radius: 10px;
+      background: #101416;
+      border: 1px solid var(--border-strong);
+      font-size: 0.83rem;
+      color: var(--text-secondary);
+      transition: border-color 0.2s ease;
+    }
+
+    .tray-toast.flash {
+      border-color: var(--green-bright);
+      color: #dcfce7;
+    }
+
+    .tray-toast img {
+      width: 18px;
+      height: 18px;
+      object-fit: contain;
+    }
+
+    /* Section Headings */
+    section.block {
+      padding: 76px 0 12px;
+    }
+
+    .section-head {
+      text-align: center;
+      max-width: 640px;
+      margin: 0 auto 42px;
+    }
+
+    .section-kicker {
+      display: inline-block;
+      font-size: 0.78rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--green-bright);
+      margin-bottom: 10px;
+    }
+
+    .section-head h2 {
+      font-size: clamp(1.7rem, 3.2vw, 2.35rem);
+      font-weight: 800;
+      letter-spacing: -0.025em;
+      line-height: 1.18;
+      margin-bottom: 12px;
+    }
+
+    .section-head p {
+      color: var(--text-secondary);
+      font-size: 1rem;
+    }
+
+    /* Steps */
+    .steps-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+    }
+
+    .step-card {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 26px 24px;
+      position: relative;
+    }
+
+    .step-num {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #86efac;
+      background: var(--green-soft);
+      border: 1px solid var(--green-border);
+      display: inline-flex;
+      padding: 4px 10px;
+      border-radius: 999px;
+      margin-bottom: 16px;
+    }
+
+    .step-card h3 {
+      font-size: 1.08rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .step-card p {
+      font-size: 0.93rem;
+      color: var(--text-secondary);
+    }
+
+    /* Bento Features */
+    .bento-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
       gap: 16px;
     }
 
-    .card {
+    .feature-card {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 22px;
+      border-radius: var(--radius-md);
+      padding: 24px;
+      transition: border-color 0.18s ease, transform 0.18s ease;
     }
 
-    .card h2 {
-      font-size: 1.05rem;
+    .feature-card:hover {
+      border-color: rgba(34, 197, 94, 0.35);
+      transform: translateY(-2px);
+    }
+
+    .feature-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: var(--green-soft);
+      border: 1px solid var(--green-border);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--green-bright);
+      margin-bottom: 16px;
+    }
+
+    .feature-card h3 {
+      font-size: 1.03rem;
       font-weight: 700;
       margin-bottom: 8px;
+    }
+
+    .feature-card p {
+      font-size: 0.92rem;
+      color: var(--text-secondary);
+    }
+
+    /* Download Hub */
+    .download-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+
+    .dl-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 28px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 22px;
+    }
+
+    .dl-card.featured {
+      background: linear-gradient(165deg, rgba(22, 163, 74, 0.12) 0%, var(--surface) 55%);
+      border-color: var(--green-border);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+    }
+
+    .dl-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .dl-tag {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 0.74rem;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+
+    .dl-tag.rec {
+      background: var(--green);
       color: #ffffff;
     }
 
-    .card p {
-      font-size: 0.94rem;
-      color: var(--muted);
+    .dl-tag.alt {
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text-secondary);
+      border: 1px solid var(--border);
     }
 
+    .dl-size {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+    }
+
+    .dl-card h3 {
+      font-size: 1.3rem;
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+
+    .dl-desc {
+      font-size: 0.94rem;
+      color: var(--text-secondary);
+      margin-bottom: 16px;
+    }
+
+    .dl-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      font-size: 0.9rem;
+      color: #d1dad5;
+    }
+
+    .dl-list li {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .dl-list li::before {
+      content: "✓";
+      color: var(--green-bright);
+      font-weight: 800;
+    }
+
+    .dl-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .dl-actions .btn-primary,
+    .dl-actions .btn-secondary {
+      width: 100%;
+    }
+
+    .hash-box {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 9px;
+      background: rgba(0, 0, 0, 0.28);
+      border: 1px solid var(--border);
+      font-family: "JetBrains Mono", monospace;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+
+    .hash-text {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .copy-hash {
+      flex-shrink: 0;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      border-radius: 6px;
+      padding: 3px 8px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      transition: all 0.15s ease;
+    }
+
+    .copy-hash:hover {
+      color: #ffffff;
+      border-color: var(--green-border);
+    }
+
+    .smartscreen-note {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--green-bright);
+      border-radius: var(--radius-md);
+      padding: 18px 20px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+    }
+
+    .smartscreen-note strong {
+      color: var(--text);
+    }
+
+    .release-link {
+      color: #86efac;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .release-link:hover {
+      text-decoration: underline;
+    }
+
+    /* FAQ */
+    .faq-list {
+      max-width: 780px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    details {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 18px 22px;
+      transition: border-color 0.16s ease;
+    }
+
+    details[open] {
+      border-color: var(--green-border);
+    }
+
+    summary {
+      list-style: none;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 14px;
+    }
+
+    summary::-webkit-details-marker {
+      display: none;
+    }
+
+    summary::after {
+      content: "+";
+      font-family: "JetBrains Mono", monospace;
+      font-size: 1.2rem;
+      color: var(--green-bright);
+      transition: transform 0.18s ease;
+    }
+
+    details[open] summary::after {
+      content: "−";
+    }
+
+    details p {
+      margin-top: 12px;
+      font-size: 0.94rem;
+      color: var(--text-secondary);
+    }
+
+    /* Footer */
     footer {
+      margin-top: 84px;
       border-top: 1px solid var(--border);
-      padding: 24px 0;
-      color: var(--muted);
-      font-size: 0.88rem;
+      background: rgba(0, 0, 0, 0.25);
+      padding: 34px 0;
     }
 
     .footer-inner {
       display: flex;
       flex-wrap: wrap;
-      justify-content: space-between;
       align-items: center;
-      gap: 12px;
+      justify-content: space-between;
+      gap: 18px;
+      font-size: 0.88rem;
+      color: var(--text-muted);
     }
 
-    .footer-inner a:hover {
+    .footer-brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--text);
+      font-weight: 700;
+    }
+
+    .footer-brand img {
+      width: 26px;
+      height: 26px;
+    }
+
+    .footer-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+
+    .footer-links a:hover {
       color: var(--text);
     }
 
-    @media (max-width: 640px) {
-      .hero {
-        padding: 46px 0 32px;
-      }
-
-      .monitors {
+    /* Responsive */
+    @media (max-width: 860px) {
+      .steps-grid,
+      .bento-grid,
+      .download-grid {
         grid-template-columns: 1fr;
       }
 
-      .shortcut-bridge {
-        flex-direction: row;
-        justify-content: center;
+      .monitors-stage,
+      .monitors-stage.three-screens {
+        grid-template-columns: 1fr;
+      }
+
+      .screen-bezel {
+        height: 142px;
+      }
+
+      .nav-center {
+        display: none;
       }
     }
   </style>
@@ -335,79 +1034,438 @@
   <header>
     <div class="container nav">
       <a class="brand" href="https://displaybridge.vercel.app/">
-        <img src="./DisplayBridgeV4/assets/logo_48.png" alt="DisplayBridge" />
+        <img src="./DisplayBridgeV4/assets/logo_48.png" alt="Logo DisplayBridge" />
         <span>DisplayBridge</span>
       </a>
-      <nav class="nav-links">
+
+      <nav class="nav-center" aria-label="Navegação principal">
+        <a href="#como-funciona">Como funciona</a>
         <a href="#recursos">Recursos</a>
-        <a href="https://github.com/conrider3000/DisplayBridge" target="_blank" rel="noopener">GitHub</a>
+        <a href="#download">Download</a>
+        <a href="#faq">Dúvidas</a>
       </nav>
+
+      <div class="nav-actions">
+        <a class="btn-ghost" href="https://github.com/conrider3000/DisplayBridge" target="_blank" rel="noopener">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.52-1.33-1.28-1.68-1.28-1.68-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.76 2.7 1.25 3.36.96.1-.75.4-1.25.73-1.54-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11.08 11.08 0 0 1 5.8 0c2.21-1.49 3.18-1.18 3.18-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.42-2.69 5.39-5.25 5.68.41.36.78 1.07.78 2.16 0 1.56-.01 2.82-.01 3.2 0 .31.21.68.8.56A11.51 11.51 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"/></svg>
+          GitHub
+        </a>
+        <a class="btn-nav-cta" href="#download">Baixar v4.0</a>
+      </div>
     </div>
   </header>
 
-  <main class="container">
+  <main>
+    <!-- Hero -->
     <section class="hero">
-      <img class="hero-logo" src="./DisplayBridgeV4/assets/icon_store.png" alt="Logo DisplayBridge" />
-      <div>
-        <span class="badge">Versão 4.0 · Windows 10 / 11</span>
-      </div>
-      <h1>Jogue qualquer janela para o próximo monitor.</h1>
-      <p>
-        Um utilitário leve que fica na bandeja do Windows. Segure <kbd>Tab</kbd> e toque em <kbd>Alt</kbd> para alternar sua janela ativa entre telas em um instante.
-      </p>
+      <div class="container">
+        <div class="hero-logo-wrap">
+          <img class="hero-logo" src="./DisplayBridgeV4/assets/icon_store.png" alt="DisplayBridge" />
+        </div>
 
-      <div class="cta-group">
-        <a class="btn-primary" href="https://raw.githubusercontent.com/conrider3000/DisplayBridge/master/DisplayBridgeV4/dist/Instalar_DisplayBridge_v4.exe">
-          ⬇ Baixar Instalador v4.0
-        </a>
-        <a class="btn-secondary" href="https://raw.githubusercontent.com/conrider3000/DisplayBridge/master/DisplayBridgeV4/dist/DisplayBridge_Portable.exe">
-          Versão Portátil (.exe)
-        </a>
-      </div>
-      <div class="meta-note">
-        Gratuito e de código aberto · Instalação padrão com suporte a desinstalação pelo Windows
-      </div>
+        <div class="hero-badge">
+          <span class="dot"></span>
+          Versão 4.0.0 · Windows 10 &amp; 11 (64-bit) · Gratuito &amp; Open Source
+        </div>
 
-      <div class="demo-box" aria-label="Demonstração do atalho Tab + Alt">
-        <div class="monitors">
-          <div class="monitor">
-            <span class="monitor-label">Monitor 1</span>
-            <div class="window-pill ghost">Origem</div>
+        <h1>
+          Mova janelas entre monitores <span class="accent">sem tirar a mão do teclado.</span>
+        </h1>
+
+        <p class="hero-subtitle">
+          O DisplayBridge vive silenciosamente na bandeja do Windows. Segure <kbd>Tab</kbd> e toque em <kbd>Alt</kbd> para enviar a janela ativa direto para o próximo monitor — com circularidade e proporção preservadas.
+        </p>
+
+        <div class="hero-cta">
+          <a class="btn-primary" href="https://github.com/conrider3000/DisplayBridge/releases/latest/download/Instalar_DisplayBridge_v4.exe">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Baixar Instalador v4.0 (.exe)
+          </a>
+          <a class="btn-secondary" href="#download">
+            Versão Portátil &amp; Releases
+          </a>
+        </div>
+
+        <div class="trust-strip">
+          <span>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            100% Gratuito
+          </span>
+          <span>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            Sem anúncios nem telemetria
+          </span>
+          <span>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            Mantém Alt+Tab intacto
+          </span>
+          <span>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            Desinstalador nativo do Windows
+          </span>
+        </div>
+
+        <!-- Interactive Simulator -->
+        <div class="playground" aria-label="Simulador interativo do DisplayBridge">
+          <div class="playground-bar">
+            <div class="playground-title">
+              <span class="live-pill">Demo Interativa</span>
+              Teste o movimento circular entre telas
+            </div>
+            <div class="playground-controls">
+              <button type="button" class="seg-btn active" id="btn-2m">2 Monitores</button>
+              <button type="button" class="seg-btn" id="btn-3m">3 Monitores</button>
+              <button type="button" class="seg-btn" id="btn-max">Janela Maximizada</button>
+            </div>
           </div>
-          <div class="shortcut-bridge">
-            <span><kbd>Tab</kbd> + <kbd>Alt</kbd></span>
-            <span class="arrow-icon">⇄</span>
-            <span>Circularidade</span>
-          </div>
-          <div class="monitor">
-            <span class="monitor-label">Monitor 2</span>
-            <div class="window-pill active">Janela ativa movida</div>
+
+          <div class="monitors-stage" id="monitors-stage"></div>
+
+          <div class="playground-footer">
+            <button type="button" class="trigger-btn" id="btn-move">
+              Simular <kbd id="key-tab">Tab</kbd> + <kbd id="key-alt">Alt</kbd>
+            </button>
+
+            <div class="tray-toast" id="tray-toast" aria-live="polite">
+              <img src="./DisplayBridgeV4/assets/tray_active.png" alt="" />
+              <span id="toast-text">Pronto · Clique em Simular para mover a janela</span>
+            </div>
           </div>
         </div>
       </div>
     </section>
 
-    <section id="recursos" class="features">
-      <article class="card">
-        <h2>Atalho rápido e circular</h2>
-        <p>Pressione <kbd>Tab</kbd> e toque em <kbd>Alt</kbd> para enviar a janela em foco para o próximo monitor. No último monitor, ela retorna ao primeiro automaticamente.</p>
-      </article>
-      <article class="card">
-        <h2>Proporção preservada</h2>
-        <p>Calcula a nova posição proporcionalmente entre monitores de tamanhos diferentes e mantém janelas maximizadas ocupando toda a tela de destino.</p>
-      </article>
-      <article class="card">
-        <h2>Automático na bandeja</h2>
-        <p>Ativa sozinho ao detectar 2 ou mais monitores, inicia com o Windows se você optar e conta com tela de configurações e desinstalador nativo.</p>
-      </article>
+    <!-- How it works -->
+    <section id="como-funciona" class="block">
+      <div class="container">
+        <div class="section-head">
+          <span class="section-kicker">Fluxo em 3 passos</span>
+          <h2>Simples de instalar, impossível de largar.</h2>
+          <p>Projetado para desaparecer em segundo plano e responder instantaneamente sempre que você tiver mais de uma tela conectada.</p>
+        </div>
+
+        <div class="steps-grid">
+          <article class="step-card">
+            <span class="step-num">01</span>
+            <h3>Instale ou rode portátil</h3>
+            <p>Use o instalador padrão para Windows com atalhos e início automático, ou execute o arquivo portátil direto de qualquer pasta.</p>
+          </article>
+
+          <article class="step-card">
+            <span class="step-num">02</span>
+            <h3>Segure Tab e toque em Alt</h3>
+            <p>Um gesto natural com a mão esquerda que não conflita com o <kbd>Alt</kbd> + <kbd>Tab</kbd> tradicional do Windows porque exige o <kbd>Tab</kbd> primeiro.</p>
+          </article>
+
+          <article class="step-card">
+            <span class="step-num">03</span>
+            <h3>Pule telas em ciclo contínuo</h3>
+            <p>A janela salta para o próximo monitor mantendo foco e proporção. Ao sair do último monitor, ela dá a volta e retorna ao primeiro.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features -->
+    <section id="recursos" class="block">
+      <div class="container">
+        <div class="section-head">
+          <span class="section-kicker">Recursos da v4.0</span>
+          <h2>Construído para o dia a dia em múltiplos monitores.</h2>
+          <p>Cada detalhe foi refinado para funcionar com monitores de resoluções diferentes, notebooks com tela externa e reinicializações do sistema.</p>
+        </div>
+
+        <div class="bento-grid">
+          <article class="feature-card">
+            <div class="feature-icon" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            </div>
+            <h3>Resposta instantânea</h3>
+            <p>Leitura assíncrona via Win32 (<code>GetAsyncKeyState</code>) sem travar digitação nem bloquear aplicativos em tela cheia.</p>
+          </article>
+
+          <article class="feature-card">
+            <div class="feature-icon" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+            </div>
+            <h3>Escala e maximização preservadas</h3>
+            <p>Recalcula a posição proporcionalmente entre telas Full HD, Ultrawide ou 4K e mantém janelas maximizadas perfeitamente ajustadas.</p>
+          </article>
+
+          <article class="feature-card">
+            <div class="feature-icon" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 1-9 9m9-9a9 9 0 0 0-9-9m9 9H3m9 9a9 9 0 0 1-9-9m9 9c1.66 0 3-4.03 3-9s-1.34-9-3-9m0 18c-1.66 0-3-4.03-3-9s1.34-9 3-9"/></svg>
+            </div>
+            <h3>Detecção automática de monitores</h3>
+            <p>Ativa sozinho assim que o 2º monitor é conectado — inclusive após o logon — e pausa automaticamente quando você usa só 1 tela.</p>
+          </article>
+
+          <article class="feature-card">
+            <div class="feature-icon" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9c.26.6.85 1 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            </div>
+            <h3>Menu de configurações limpo</h3>
+            <p>Direto pela bandeja do relógio você confere o status, liga ou desliga notificações e escolhe se inicia junto com o computador.</p>
+          </article>
+
+          <article class="feature-card">
+            <div class="feature-icon" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            </div>
+            <h3>Auto-start confiável</h3>
+            <p>Sincroniza o caminho exato do executável no Registro do Windows a cada execução e evita falhas comuns na inicialização.</p>
+          </article>
+
+          <article class="feature-card">
+            <div class="feature-icon" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+            </div>
+            <h3>Integração e desinstalação nativas</h3>
+            <p>Aparece oficialmente em <em>Configurações → Aplicativos instalados</em> do Windows e remove todos os arquivos, atalhos e chaves sem deixar rastros.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- Download Center -->
+    <section id="download" class="block">
+      <div class="container">
+        <div class="section-head">
+          <span class="section-kicker">Central de Downloads · v4.0.0</span>
+          <h2>Baixe o DisplayBridge para Windows.</h2>
+          <p>Escolha entre o instalador completo ou o executável portátil. Hospedado oficialmente no GitHub Releases com verificação SHA-256.</p>
+        </div>
+
+        <div class="download-grid">
+          <div class="dl-card featured">
+            <div>
+              <div class="dl-top">
+                <span class="dl-tag rec">Recomendado</span>
+                <span class="dl-size">34,0 MB · Windows .exe</span>
+              </div>
+              <h3>Instalador DisplayBridge v4.0</h3>
+              <p class="dl-desc">Experiência completa para uso diário no seu PC ou notebook com múltiplos monitores.</p>
+              <ul class="dl-list">
+                <li>Assistente nativo do Windows (sem precisar de Python)</li>
+                <li>Atalhos opcionais na Área de Trabalho e Menu Iniciar</li>
+                <li>Início automático com o Windows já configurado</li>
+                <li>Registro em Aplicativos Instalados com desinstalador nativo</li>
+              </ul>
+            </div>
+
+            <div class="dl-actions">
+              <a class="btn-primary" href="https://github.com/conrider3000/DisplayBridge/releases/latest/download/Instalar_DisplayBridge_v4.exe">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Baixar Instalar_DisplayBridge_v4.exe
+              </a>
+              <div class="hash-box" title="SHA-256 de Instalar_DisplayBridge_v4.exe">
+                <span class="hash-text">SHA-256: E23C36A8A687CB31C35EB61F042FE03DB2DD4F1E9907C2954DD70596A1955D7C</span>
+                <button type="button" class="copy-hash" data-hash="E23C36A8A687CB31C35EB61F042FE03DB2DD4F1E9907C2954DD70596A1955D7C">Copiar</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="dl-card">
+            <div>
+              <div class="dl-top">
+                <span class="dl-tag alt">Sem Instalação</span>
+                <span class="dl-size">18,7 MB · Windows .exe</span>
+              </div>
+              <h3>DisplayBridge Portátil v4.0</h3>
+              <p class="dl-desc">Ideal para testar rapidamente ou carregar em um pendrive sem passar pelo assistente.</p>
+              <ul class="dl-list">
+                <li>Executável único pronto para abrir direto</li>
+                <li>Mesmos recursos, atalho Tab + Alt e bandeja do sistema</li>
+                <li>Configurações salvas em <code>%APPDATA%\DisplayBridge</code></li>
+                <li>Código-fonte 100% aberto e auditável no GitHub</li>
+              </ul>
+            </div>
+
+            <div class="dl-actions">
+              <a class="btn-secondary" href="https://github.com/conrider3000/DisplayBridge/releases/latest/download/DisplayBridge_Portable.exe">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Baixar DisplayBridge_Portable.exe
+              </a>
+              <div class="hash-box" title="SHA-256 de DisplayBridge_Portable.exe">
+                <span class="hash-text">SHA-256: 9B3C3D461B1D0EFFFE3272140432EF9B602174F364AB2F78976C3FBBE01B01A2</span>
+                <button type="button" class="copy-hash" data-hash="9B3C3D461B1D0EFFFE3272140432EF9B602174F364AB2F78976C3FBBE01B01A2">Copiar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="smartscreen-note">
+          <div>
+            <strong>Aviso do Windows SmartScreen:</strong> por ser um software independente gratuito sem certificado pago, o Windows pode exibir <em>"O Windows protegeu o computador"</em> na primeira abertura. Basta clicar em <strong>Mais informações</strong> → <strong>Executar assim mesmo</strong>.
+          </div>
+          <a class="release-link" href="https://github.com/conrider3000/DisplayBridge/releases/latest" target="_blank" rel="noopener">
+            Ver release no GitHub →
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section id="faq" class="block">
+      <div class="container">
+        <div class="section-head">
+          <span class="section-kicker">Perguntas Frequentes</span>
+          <h2>Tire suas dúvidas rápidas.</h2>
+        </div>
+
+        <div class="faq-list">
+          <details>
+            <summary>O atalho Tab + Alt interfere no Alt + Tab padrão do Windows?</summary>
+            <p>Não. O DisplayBridge só dispara quando você pressiona <strong>Tab primeiro</strong> (com o Alt solto) e então toca no <strong>Alt</strong>. O seu <strong>Alt + Tab</strong> normal para alternar entre aplicativos continua funcionando exatamente como sempre.</p>
+          </details>
+
+          <details>
+            <summary>Funciona com 3 ou mais monitores?</summary>
+            <p>Sim! O aplicativo enumera todos os monitores ativos no Windows e move a janela em ordem circular: Monitor 1 → Monitor 2 → Monitor 3 → volta para o Monitor 1.</p>
+          </details>
+
+          <details>
+            <summary>Existe versão para Android (APK) ou macOS?</summary>
+            <p>O DisplayBridge é um utilitário feito exclusivamente para computadores <strong>Windows 10 e 11</strong> (arquivo <code>.exe</code>), pois utiliza APIs nativas Win32 para manipular janelas entre múltiplos monitores. Não existe versão mobile (<code>.apk</code>).</p>
+          </details>
+
+          <details>
+            <summary>Como desinstalar o DisplayBridge do computador?</summary>
+            <p>Abra <strong>Configurações → Aplicativos → Aplicativos instalados</strong> no Windows, procure por <strong>DisplayBridge</strong> e clique em <strong>Desinstalar</strong>. Ele encerra o processo, apaga atalhos, limpa as chaves do Registro e remove a pasta automaticamente.</p>
+          </details>
+        </div>
+      </div>
     </section>
   </main>
 
   <footer>
     <div class="container footer-inner">
-      <span>DisplayBridge v4.0 · <a href="https://displaybridge.vercel.app/">displaybridge.vercel.app</a></span>
-      <span><a href="https://github.com/conrider3000/DisplayBridge" target="_blank" rel="noopener">github.com/conrider3000/DisplayBridge</a></span>
+      <div class="footer-brand">
+        <img src="./DisplayBridgeV4/assets/logo_36.png" alt="DisplayBridge" />
+        <span>DisplayBridge v4.0.0</span>
+      </div>
+      <div class="footer-links">
+        <a href="https://displaybridge.vercel.app/">displaybridge.vercel.app</a>
+        <a href="https://github.com/conrider3000/DisplayBridge" target="_blank" rel="noopener">Código no GitHub</a>
+        <a href="https://github.com/conrider3000/DisplayBridge/releases/latest" target="_blank" rel="noopener">GitHub Releases</a>
+        <a href="https://github.com/conrider3000/DisplayBridge/issues" target="_blank" rel="noopener">Reportar bug</a>
+      </div>
     </div>
   </footer>
+
+  <script>
+    (function () {
+      let screenCount = 2;
+      let activeScreen = 0;
+      let maximized = false;
+
+      const specs = [
+        { name: "Monitor 1", res: "1920×1080" },
+        { name: "Monitor 2", res: "2560×1440" },
+        { name: "Monitor 3", res: "1920×1080" }
+      ];
+
+      const stage = document.getElementById("monitors-stage");
+      const btn2m = document.getElementById("btn-2m");
+      const btn3m = document.getElementById("btn-3m");
+      const btnMax = document.getElementById("btn-max");
+      const btnMove = document.getElementById("btn-move");
+      const keyTab = document.getElementById("key-tab");
+      const keyAlt = document.getElementById("key-alt");
+      const trayToast = document.getElementById("tray-toast");
+      const toastText = document.getElementById("toast-text");
+
+      function renderScreens() {
+        stage.classList.toggle("three-screens", screenCount === 3);
+        stage.innerHTML = "";
+        for (let i = 0; i < screenCount; i++) {
+          const isHere = i === activeScreen;
+          const unit = document.createElement("div");
+          unit.className = "screen-unit" + (isHere ? " has-window" : "");
+          unit.innerHTML =
+            '<div class="screen-bezel">' +
+              '<div class="screen-meta">' +
+                '<span>' + specs[i].name + '</span>' +
+                '<span>' + specs[i].res + '</span>' +
+              '</div>' +
+              '<div class="screen-canvas">' +
+                (isHere
+                  ? '<div class="app-window' + (maximized ? ' maximized' : '') + '">' +
+                      '<div class="win-titlebar">' +
+                        '<span>Projeto — Editor</span>' +
+                        '<span class="win-dots"><i></i><i></i><i></i></span>' +
+                      '</div>' +
+                      '<div class="win-body">' +
+                        '<div class="code-line green"></div>' +
+                        '<div class="code-line mid"></div>' +
+                        '<div class="code-line short"></div>' +
+                      '</div>' +
+                    '</div>'
+                  : '<div class="empty-hint">Área livre</div>') +
+              '</div>' +
+            '</div>' +
+            '<div class="screen-stand"></div>' +
+            '<div class="screen-base"></div>';
+          stage.appendChild(unit);
+        }
+      }
+
+      function moveWindow() {
+        const prev = activeScreen;
+        activeScreen = (activeScreen + 1) % screenCount;
+        const wrapped = prev === screenCount - 1 && activeScreen === 0;
+
+        keyTab.classList.add("pressed");
+        setTimeout(() => keyAlt.classList.add("pressed"), 60);
+        setTimeout(() => {
+          keyTab.classList.remove("pressed");
+          keyAlt.classList.remove("pressed");
+        }, 280);
+
+        renderScreens();
+        toastText.textContent =
+          '"Projeto — Editor" → Monitor ' + (activeScreen + 1) + (wrapped ? " (circularidade)" : "");
+        trayToast.classList.add("flash");
+        setTimeout(() => trayToast.classList.remove("flash"), 600);
+      }
+
+      btn2m.addEventListener("click", () => {
+        screenCount = 2;
+        if (activeScreen >= 2) activeScreen = 0;
+        btn2m.classList.add("active");
+        btn3m.classList.remove("active");
+        renderScreens();
+      });
+
+      btn3m.addEventListener("click", () => {
+        screenCount = 3;
+        btn3m.classList.add("active");
+        btn2m.classList.remove("active");
+        renderScreens();
+      });
+
+      btnMax.addEventListener("click", () => {
+        maximized = !maximized;
+        btnMax.classList.toggle("active", maximized);
+        renderScreens();
+      });
+
+      btnMove.addEventListener("click", moveWindow);
+
+      document.querySelectorAll(".copy-hash").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const hash = btn.getAttribute("data-hash");
+          if (navigator.clipboard && hash) {
+            navigator.clipboard.writeText(hash).then(() => {
+              btn.textContent = "Copiado!";
+              setTimeout(() => { btn.textContent = "Copiar"; }, 1600);
+            });
+          }
+        });
+      });
+
+      renderScreens();
+    })();
+  </script>
 </body>
 </html>
